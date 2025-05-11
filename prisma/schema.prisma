@@ -1,0 +1,42 @@
+// Prisma schema for Poker IQ-Challenge
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+model QuizBatch {
+  id          String     @id @default(uuid())
+  difficulty  Difficulty
+  questions   Json       // 20 Q/A-par
+  validFrom   DateTime
+  validTo     DateTime
+  quizRuns    QuizRun[]
+}
+
+enum Difficulty {
+  BEGINNER
+  MEDIUM
+  PRO
+}
+
+model QuizRun {
+  id          String   @id @default(uuid())
+  userId      String
+  batchId     String
+  score       Int
+  timeStampMs Int
+  createdAt   DateTime @default(now())
+  batch       QuizBatch @relation(fields: [batchId], references: [id])
+}
+
+model LeaderboardEntry {
+  id          String   @id @default(uuid())
+  batchId     String
+  userId      String
+  region      String   // "ALL", "SE", "US"…
+  score       Int
+  timeStampMs Int
+} 
