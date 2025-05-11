@@ -15,7 +15,6 @@
     "@types/ioredis": "^4.28.10",
     "ioredis": "^5.6.1",
     "next": "latest",
-    "openai": "latest",
     "react": "latest",
     "react-dom": "latest",
     "redis": "latest"
