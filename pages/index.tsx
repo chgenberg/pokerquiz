@@ -21,31 +21,19 @@ const IndexPage: React.FC = () => {
   const [skillLevel, setSkillLevel] = useState<number | null>(null);
   const [showHint, setShowHint] = useState(false);
   const [hintUsed, setHintUsed] = useState<{ [qIdx: number]: boolean }>({});
-  const [localQuestions, setLocalQuestions] = useState<QuizQuestion[] | null>(null);
+  const [localQuestions, setLocalQuestions] = useState<QuizQuestion[]>([]);
   const [questionTimer, setQuestionTimer] = useState(30);
 
   // Start quiz with selected skill level
   const handleStartQuiz = () => {
     setShowSkillPopup(false);
-    let questions;
-    let timer;
-    if (skillLevel! <= 2) {
-      questions = quizData.filter(q => q.difficulty === 'easy');
-      timer = 30;
-    } else if (skillLevel! <= 6) {
-      questions = quizData.filter(q => q.difficulty === 'medium');
-      timer = 20;
-    } else {
-      questions = quizData.filter(q => q.difficulty === 'hard');
-      timer = 15;
-    }
-    setLocalQuestions(questions);
-    setQuestionTimer(timer);
+    setLocalQuestions(quizData);
+    setQuestionTimer(30);
     setCurrent(0);
     setAnswers([]);
     setShowResult(false);
     setSelected(null);
-    setTimer(timer);
+    setTimer(30);
     setShowHint(false);
     setHintUsed({});
   };
@@ -120,7 +108,7 @@ const IndexPage: React.FC = () => {
     );
   }
 
-  if (!localQuestions) {
+  if (!localQuestions || localQuestions.length === 0) {
     return <div>Loading...</div>;
   }
 

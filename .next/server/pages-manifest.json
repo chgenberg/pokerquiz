@@ -1,6 +1,10 @@
 {
   "/_app": "pages/_app.js",
+  "/api/leaderboard": "pages/api/leaderboard.js",
+  "/api/quiz/current": "pages/api/quiz/current.js",
+  "/api/quiz/submit": "pages/api/quiz/submit.js",
+  "/": "pages/index.html",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/": "pages/index.js"
+  "/404": "pages/404.html"
 }

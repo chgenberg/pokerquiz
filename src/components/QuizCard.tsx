@@ -1,53 +1,58 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../store';
-import { setCurrentQuestion, setScore, setTimeLeft, setQuizStarted, setQuizFinished } from '../store/quizSlice';
-import { Question } from '../types/quiz';
 import { useRouter } from 'next/router';
+
+interface Question {
+  question: string;
+  options: string[];
+  correctOptionId: number;
+}
 
 interface QuizCardProps {
   questions: Question[];
 }
 
 const QuizCard: React.FC<QuizCardProps> = ({ questions }) => {
-  const dispatch = useDispatch();
   const router = useRouter();
-  const { currentQuestionIndex, score, timeLeft, quizStarted, quizFinished } = useSelector((state: RootState) => state.quiz);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [score, setScore] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(30);
+  const [quizStarted, setQuizStarted] = useState(false);
+  const [quizFinished, setQuizFinished] = useState(false);
   const [showSkillPopup, setShowSkillPopup] = useState(true);
 
   useEffect(() => {
     if (quizStarted && !quizFinished) {
-      const timer = setInterval(() => {
-        if (timeLeft > 0) {
-          dispatch(setTimeLeft(timeLeft - 1));
-        } else {
-          handleAnswer(null);
-        }
-      }, 1000);
-      return () => clearInterval(timer);
+      if (timeLeft === 0) {
+        handleAnswer(null);
+        return;
+      }
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timer);
     }
-  }, [quizStarted, quizFinished, timeLeft, dispatch]);
+  }, [quizStarted, quizFinished, timeLeft]);
 
   const handleSkillLevelSelect = (level: number) => {
-    // Here you can store the selected skill level in your state or context if needed
-    console.log('Selected skill level:', level);
     setShowSkillPopup(false);
-    dispatch(setQuizStarted(true));
+    setQuizStarted(true);
+    setTimeLeft(30);
+    setCurrentQuestionIndex(0);
+    setScore(0);
+    setQuizFinished(false);
   };
 
-  const handleAnswer = (answer: string | null) => {
-    if (currentQuestionIndex < questions.length) {
-      const currentQuestion = questions[currentQuestionIndex];
-      if (answer === currentQuestion.correctAnswer) {
-        dispatch(setScore(score + 1));
-      }
-      if (currentQuestionIndex + 1 < questions.length) {
-        dispatch(setCurrentQuestion(currentQuestionIndex + 1));
-        dispatch(setTimeLeft(30));
-      } else {
-        dispatch(setQuizFinished(true));
-        router.push('/results');
-      }
+  const handleAnswer = (answerIndex: number | null) => {
+    if (!quizStarted || quizFinished) return;
+    const currentQuestion = questions[currentQuestionIndex];
+    if (answerIndex !== null && answerIndex === currentQuestion.correctOptionId) {
+      setScore(score + 1);
+    }
+    if (currentQuestionIndex + 1 < questions.length) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setTimeLeft(30);
+    } else {
+      setQuizFinished(true);
+      setQuizStarted(false);
+      // router.push('/results'); // Optional: navigate to a results page
     }
   };
 
@@ -74,7 +79,24 @@ const QuizCard: React.FC<QuizCardProps> = ({ questions }) => {
   }
 
   if (!quizStarted || quizFinished) {
-    return null;
+    return quizFinished ? (
+      <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-lg text-center">
+        <h2 className="text-2xl font-bold mb-4">Quiz Finished!</h2>
+        <p className="mb-2">Your score: {score} / {questions.length}</p>
+        <button
+          className="mt-4 px-6 py-2 bg-[#23173a] text-white rounded"
+          onClick={() => {
+            setShowSkillPopup(true);
+            setQuizFinished(false);
+            setScore(0);
+            setCurrentQuestionIndex(0);
+            setTimeLeft(30);
+          }}
+        >
+          Try Again
+        </button>
+      </div>
+    ) : null;
   }
 
   const currentQuestion = questions[currentQuestionIndex];
@@ -98,7 +120,7 @@ const QuizCard: React.FC<QuizCardProps> = ({ questions }) => {
         {currentQuestion.options.map((option: string, index: number) => (
           <button
             key={index}
-            onClick={() => handleAnswer(option)}
+            onClick={() => handleAnswer(index)}
             className="w-full p-3 text-left bg-gray-100 rounded hover:bg-gray-200"
           >
             {option}
