@@ -3,14 +3,15 @@ export type QuizQuestion = {
   options: string[];
   correctOptionId: number;
   hint: string;
+  explanation?: string;
 };
 
 export const quizData = {
   easy: [
     {
       question: 'Which hand outranks a straight: a flush or a full house?',
-      answers: ['Flush', 'Full house', 'Straight', 'Three of a kind'],
-      correctIndex: 1,
+      options: ['Flush', 'Full house', 'Straight', 'Three of a kind'],
+      correctOptionId: 1,
       hint: "Prometheus whispers: 'A house is stronger than a river's flow.'"
     },
     {
