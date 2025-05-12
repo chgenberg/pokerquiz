@@ -125,7 +125,7 @@ const IndexPage: React.FC = () => {
   }
 
   const currentQuestion = localQuestions[current];
-  const correctCount = answers.filter((a, i) => a === localQuestions[i].correctAnswer).length;
+  const correctCount = answers.filter((a, i) => a === localQuestions[i].correctOptionId).length;
 
   return (
     <div className="min-h-screen bg-[#f0e9db] flex flex-col items-center justify-center py-8 px-2">
@@ -168,10 +168,10 @@ const IndexPage: React.FC = () => {
                 ${selected === null
                   ? 'bg-[#f0e9db] text-[#23173a] border-[#23173a] hover:bg-[#23173a] hover:text-white'
                   : selected === index
-                  ? index === currentQuestion.correctAnswer
+                  ? index === currentQuestion.correctOptionId
                     ? 'bg-green-500 border-green-600 text-white'
                     : 'bg-red-500 border-red-600 text-white'
-                  : index === currentQuestion.correctAnswer
+                  : index === currentQuestion.correctOptionId
                   ? 'bg-green-100 border-green-300 text-green-700'
                   : 'bg-gray-100 border-gray-200 text-gray-400'}
               `}
@@ -193,7 +193,7 @@ const IndexPage: React.FC = () => {
         {/* Feedback */}
         {selected !== null && (
           <div className="mt-6 text-center text-xl font-bold w-full">
-            {selected === currentQuestion.correctAnswer ? (
+            {selected === currentQuestion.correctOptionId ? (
               <span className="text-green-600">Correct!</span>
             ) : (
               <span className="text-red-600">Wrong!</span>
@@ -204,11 +204,36 @@ const IndexPage: React.FC = () => {
         {/* Resultat-popup */}
         {showResult && (
           <div className="fixed inset-0 bg-[#23173a]/80 flex items-center justify-center z-50">
-            <div className="bg-white rounded-3xl shadow-2xl p-10 max-w-md w-full text-center border-4 border-[#f0e9db] relative">
-              <img src="/maskot2.png" alt="Mascot" className="w-36 h-36 mx-auto mb-4 object-contain rounded-[30%]" />
+            <div className="bg-white rounded-3xl shadow-2xl p-10 max-w-2xl w-full text-center border-4 border-[#f0e9db] relative">
+              {/* Close button */}
+              <a 
+                href="https://prometheuspoker.com" 
+                className="absolute top-4 right-4 text-[#23173a] hover:text-[#e74c3c] transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </a>
+
               <h2 className="text-3xl font-bold mb-4 text-[#23173a]">Quiz Complete!</h2>
               <div className="text-6xl font-extrabold mb-2 text-[#23173a]">{correctCount} / {localQuestions.length}</div>
               <div className="mb-4 text-xl text-[#23173a]">Correct answers</div>
+
+              {/* Question Summary */}
+              <div className="mt-6 max-h-96 overflow-y-auto">
+                <h3 className="text-xl font-semibold mb-4 text-[#23173a]">Question Summary</h3>
+                {localQuestions.map((q, index) => (
+                  <div key={index} className="mb-4 p-4 bg-gray-50 rounded-lg text-left">
+                    <p className="font-medium text-[#23173a] mb-2">Q{index + 1}: {q.question}</p>
+                    <p className="text-sm text-gray-600">Your answer: {q.options[answers[index]]}</p>
+                    <p className="text-sm text-gray-600">Correct answer: {q.options[q.correctOptionId]}</p>
+                    {answers[index] !== q.correctOptionId && (
+                      <p className="text-sm text-[#e74c3c] mt-1">Hint: {q.hint}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+
               <button
                 className="mt-4 px-8 py-3 bg-[#23173a] text-white rounded-xl font-semibold shadow hover:scale-105 transition text-lg"
                 onClick={() => {
@@ -219,13 +244,14 @@ const IndexPage: React.FC = () => {
               >
                 Try Again
               </button>
+
+              {/* Mascot image moved to bottom right */}
+              <div className="absolute right-4 bottom-4 z-20" style={{ pointerEvents: 'none' }}>
+                <img src="/maskot.png" alt="Mascot" className="w-24 h-24 object-contain" />
+              </div>
             </div>
           </div>
         )}
-        {/* Maskotcar.png längst ner på quizkortet, nära vänsterkanten */}
-        <div className="absolute left-2 bottom-0 z-20" style={{ pointerEvents: 'none' }}>
-          <img src="/maskotcar.png" alt="Mascot Car" className="w-24 h-16 object-contain" />
-        </div>
       </div>
     </div>
   );
