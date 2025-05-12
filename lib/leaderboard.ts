@@ -1,17 +1,21 @@
-import Redis from 'redis';
+import { PrismaClient } from '@prisma/client';
 
-const redis = Redis.createClient();
+const prisma = new PrismaClient();
 
 export async function getTopN(batchId: string, difficulty: string, region: string, N = 100) {
-  return new Promise<{ userId: string; score: number }[]>((resolve, reject) => {
-    const key = `lb:${batchId}:${difficulty}:${region}`;
-    redis.zrevrange(key, 0, N - 1, 'WITHSCORES', (err: Error | null, result: string[]) => {
-      if (err) return reject(err);
-      const entries = [];
-      for (let i = 0; i < result.length; i += 2) {
-        entries.push({ userId: result[i], score: parseInt(result[i + 1], 10) });
-      }
-      resolve(entries);
-    });
+  const entries = await prisma.leaderboardEntry.findMany({
+    where: {
+      batchId,
+      region
+    },
+    orderBy: {
+      score: 'desc'
+    },
+    take: N
   });
+
+  return entries.map(entry => ({
+    userId: entry.userId,
+    score: entry.score
+  }));
 } 
