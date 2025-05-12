@@ -1,6 +1,6 @@
-import { Redis } from 'ioredis';
+import { PrismaClient } from '@prisma/client';
 
-const redis = process.env.REDIS_URL ? new Redis(process.env.REDIS_URL) : new Redis();
+const prisma = new PrismaClient();
 
 export async function getLeaderboard(
   batchId: string,
@@ -8,27 +8,21 @@ export async function getLeaderboard(
   region: string,
   N: number = 10
 ) {
-  return new Promise<{ userId: string; score: number }[]>((resolve, reject) => {
-    const key = `lb:${batchId}:${difficulty}:${region}`;
-    redis.zrevrange(
-      key,
-      0,
-      N - 1,
-      'WITHSCORES',
-      (err: Error | null | undefined, result: string[] | undefined) => {
-        if (err) return reject(err);
-        if (!result) return resolve([]);
-        const entries = [];
-        for (let i = 0; i < result.length; i += 2) {
-          entries.push({
-            userId: result[i],
-            score: parseInt(result[i + 1], 10),
-          });
-        }
-        resolve(entries);
-      }
-    );
+  const entries = await prisma.leaderboardEntry.findMany({
+    where: {
+      batchId,
+      region
+    },
+    orderBy: {
+      score: 'desc'
+    },
+    take: N
   });
+
+  return entries.map(entry => ({
+    userId: entry.userId,
+    score: entry.score
+  }));
 }
 
 export async function updateLeaderboard(
@@ -38,6 +32,13 @@ export async function updateLeaderboard(
   userId: string,
   score: number
 ) {
-  const key = `lb:${batchId}:${difficulty}:${region}`;
-  await redis.zadd(key, score, userId);
+  await prisma.leaderboardEntry.create({
+    data: {
+      batchId,
+      userId,
+      region,
+      score,
+      timeStampMs: Date.now()
+    }
+  });
 }
